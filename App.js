@@ -3,11 +3,14 @@ import { Text, View, TouchableOpacity } from 'react-native';
 import * as Permissions from 'expo-permissions';
 import { Camera } from 'expo-camera';
 import { Ionicons } from '@expo/vector-icons';
+import { handleUpload } from './api/ocr'
+import Spinner from 'react-native-loading-spinner-overlay'
 
 export default class App extends React.Component {
   state = {
     hasCameraPermission: null,
     type: Camera.Constants.Type.back,
+    spinner: false
   };
 
   async componentDidMount() {
@@ -17,10 +20,16 @@ export default class App extends React.Component {
 
   takePicture = async () => {
     if (this.camera) {
+      this.setState({ spinner: true })
       // Configuração da câmera
       const options = { quality: 0.5, base64: true };
       const data = await this.camera.takePictureAsync(options);
-      console.log(data)
+      const text = await handleUpload(data)
+      alert.alert("Texto Extraído", text.data.trim())
+
+      // Após processar a foto desativa o spinner e mostra o resultado
+      this.setState({ spinner: false })
+      //console.log(data)
     }
   };
 
@@ -34,19 +43,29 @@ export default class App extends React.Component {
     } else {
       return (
         <View style={{ flex: 1 }}>
-          <Camera style={{ flex: 1 }} type={this.state.type} ref={ref => { this.camera = ref; }}>
+          <Spinner
+            visible={this.state.spinner}
+            textContent={'Processando Imagem.....:)'}
+            textStyle={{ color: '#FFF' }}
+          />
+          <Camera style={{ flex: 1 }}
+            type={this.state.type}
+            ref={ref => { this.camera = ref; }}>
+
             <View
               style={{
                 flex: 1,
                 backgroundColor: 'transparent',
                 flexDirection: 'row',
               }}>
+
               <TouchableOpacity
                 style={{
                   flex: 0.1,
                   alignSelf: 'flex-end',
                   alignItems: 'center',
                 }}
+
                 onPress={() => {
                   this.setState({
                     type:
@@ -55,16 +74,30 @@ export default class App extends React.Component {
                         : Camera.Constants.Type.back,
                   });
                 }}>
-                <Text style={{ fontSize: 18, marginBottom: 10, color: 'white' }}> Flip </Text>
+
+                <Text style={{ fontSize: 18, marginBottom: 10, color: 'white' }}>
+                  Flip
+                </Text>
+
               </TouchableOpacity>
+
             </View>
+
             <View style={{
               flex: 0,
               flexDirection: "row",
               justifyContent: "center"
             }}>
-              <TouchableOpacity onPress={this.takePicture} style={{ alignSelf: 'center' }}>
-                <Ionicons name="ios-radio-button-on" size={70} color="white" />
+
+              <TouchableOpacity
+                onPress={this.takePicture}
+                style={{ alignSelf: 'center' }}>
+
+                <Ionicons
+                  name="ios-radio-button-on"
+                  size={70}
+                  color="white" />
+
               </TouchableOpacity>
             </View>
           </Camera>
