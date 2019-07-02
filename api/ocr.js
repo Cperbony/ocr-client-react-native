@@ -16,7 +16,7 @@ export async function handleUpload(uri) {
     const bodyData = createFormData(uri);
     // Instância do axios realizando requisição a api
     const text = await axios({
-        url: "http://7ffb2081.ngrok.io/upload",
+        url: "http://979a5e10.ngrok.io/upload",
         method: "post",
         data: bodyData,
         // Configura os headers para aceitarem arquivos
